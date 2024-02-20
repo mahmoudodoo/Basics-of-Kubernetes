@@ -1,0 +1,22 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu1804"
+  config.vm.network "private_network", type: "dhcp"
+  config.vm.provision "shell", inline: <<-SHELL
+    # Install Minikube dependencies
+    sudo apt-get update && sudo apt-get install -y curl apt-transport-https
+    sudo apt-get install -y virtualbox virtualbox-ext-pack
+    # Install kubectl
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+    chmod +x ./kubectl
+    sudo mv ./kubectl /usr/local/bin/kubectl
+    # Install Minikube
+    curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    chmod +x minikube
+    sudo mv minikube /usr/local/bin/
+    # Start Minikube
+    minikube start --driver=none
+  SHELL
+end

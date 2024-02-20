@@ -1,0 +1,24 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu1804"
+  config.vm.network "private_network", type: "dhcp"
+  config.vm.provision "shell", inline: <<-SHELL
+    # Ensure Minikube and kubectl are installed
+    if ! type minikube > /dev/null; then
+      curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      chmod +x minikube
+      sudo mv minikube /usr/local/bin/
+    fi
+    if ! type kubectl > /dev/null; then
+      curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+      chmod +x ./kubectl
+      sudo mv ./kubectl /usr/local/bin/kubectl
+    fi
+    minikube start --driver=none
+    # Deploy a sample application
+    kubectl create deployment hello-node --image=k8s.gcr.io/echoserver:1.4
+    kubectl expose deployment hello-node --type=LoadBalancer --port=8080
+  SHELL
+end
